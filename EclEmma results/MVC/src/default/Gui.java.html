@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>Gui.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">Main (1) (May 31, 2016 7:56:14 PM)</a> &gt; <a href="../../index.html" class="el_group">MVC</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">Gui.java</span></div><h1>Gui.java</h1><pre class="source lang-java linenums">import info.movito.themoviedbapi.*;
+import info.movito.themoviedbapi.model.*;
+import java.awt.Dimension;
+import java.awt.GridBagLayout;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import javax.swing.*;
+import javax.imageio.ImageIO;
+import java.io.*;
+import java.util.ArrayList;
+import java.awt.*;
+
+/*******************************************************************************
+ * Gui contains the gui part of the TriviaGame project. From the Gui, the user 
+ * can choose to search for movies or play a trivia game. Additionally, 
+ * searches can be saved to a file.
+ * 
+ * @author Kimberlin Steffens, Raymundo Ramirez, Camaal Murray, Nicolas Heady
+ * @version First Release
+ ******************************************************************************/
+public class Gui extends JFrame implements ActionListener {
+
+  /** The model class for searching and posters. */
+  private Model model;
+
+  /** Go button to do searches. */
+  private JButton goButton;
+
+  /** Answer button to answer questions. */
+  private JButton answerButton;
+
+  /** Text field for user to type. */
+  private JTextField tField;
+
+  /** Text area for updated text (for search results, trivia, etc.). */
+  private JTextArea textDisplay;
+
+  /** File menu for the gui. */
+  private JMenu fileMenu;
+
+  /** Edit menu for the gui. */
+  private JMenu editMenu;
+
+  /** The toolkit. */
+  private Toolkit tk;
+
+  /** The menu bar for the gui. */
+  private JMenuBar menuBar;
+
+  /** Option in fileMenu for &quot;new&quot; action. */
+  private JMenuItem newAction;
+
+  /** Option in fileMenu for saving searches. */
+  private JMenuItem saveAction;
+
+  /** Option in fileMenu for opening files. */
+  private JMenuItem openAction;
+
+  /** Option in fileMenu for exiting. */
+  private JMenuItem exitAction;
+
+  /** Option in editMenu for cutting. */
+  private JMenuItem cutAction;
+
+  /** Option in editMenu for copying. */
+  private JMenuItem copyAction;
+
+  /** Option in editMenu for pasting. */
+  private JMenuItem pasteAction;
+
+  /** Option in fileMenu for starting a TriviaGame. */
+  private JMenuItem triviaGame;
+
+  /** Option in fileMenu for searching for movies. */
+  private JMenuItem searchMovies;
+
+  /** The panel to place parts of the gui. */
+  private JPanel infoPanel;
+
+  /** The button panel to place buttons. */
+  private JPanel buttonPanel;
+
+  /** The searchLabel displays whether they are searching or doing Trivia. */
+  private JLabel searchLabel;
+
+  /** Boolean for whether playing trivia (true) or not (false). */
+  private boolean playingTrivia;
+
+  /** The TriviaGame itself. */
+  private TriviaGame trivia;
+
+  /** The scroll pane for the textDisplay. */
+  private JScrollPane scrollPane;
+  
+  private BackgroundPanel imgPanel;
+
+  /** File dialog for use in doOpen() and doSave(). */
+  private JFileChooser fileDialog;
+
+  /** The file, if any that is currently being edited. */
+  private File editFile;
+
+  /** The serialVersionUID. */
+  private static final long serialVersionUID = 1L;
+
+  /*****************************************************************************
+   * Constructor for the GUI.
+   ****************************************************************************/
+<span class="fc" id="L111">  public Gui() {</span>
+
+<span class="fc" id="L113">    playingTrivia = false;</span>
+
+    // Instantiates model for calling methods.
+<span class="fc" id="L116">    model = new Model();</span>
+
+<span class="fc" id="L118">    menuBar = new JMenuBar();</span>
+<span class="fc" id="L119">    setJMenuBar(menuBar);</span>
+
+<span class="fc" id="L121">    fileMenu = new JMenu(&quot;File&quot;);</span>
+<span class="fc" id="L122">    editMenu = new JMenu(&quot;Edit&quot;);</span>
+<span class="fc" id="L123">    menuBar.add(fileMenu);</span>
+<span class="fc" id="L124">    menuBar.add(editMenu);</span>
+
+    // Create and add simple menu item to one of the drop down menu
+<span class="fc" id="L127">    newAction = new JMenuItem(&quot;New&quot;);</span>
+<span class="fc" id="L128">    openAction = new JMenuItem(&quot;Open&quot;);</span>
+<span class="fc" id="L129">    saveAction = new JMenuItem(&quot;Save&quot;);</span>
+<span class="fc" id="L130">    exitAction = new JMenuItem(&quot;Exit&quot;);</span>
+<span class="fc" id="L131">    cutAction = new JMenuItem(&quot;Cut&quot;);</span>
+<span class="fc" id="L132">    copyAction = new JMenuItem(&quot;Copy&quot;);</span>
+<span class="fc" id="L133">    pasteAction = new JMenuItem(&quot;Paste&quot;);</span>
+<span class="fc" id="L134">    triviaGame = new JMenuItem(&quot;Trivia Game&quot;);</span>
+<span class="fc" id="L135">    searchMovies = new JMenuItem(&quot;Search Movies&quot;);</span>
+    
+<span class="fc" id="L137">    imgPanel = new BackgroundPanel();</span>
+<span class="fc" id="L138">    imgPanel.setSize(500, 500);</span>
+
+<span class="fc" id="L140">    fileMenu.add(newAction);</span>
+<span class="fc" id="L141">    fileMenu.add(openAction);</span>
+<span class="fc" id="L142">    fileMenu.add(saveAction);</span>
+
+<span class="fc" id="L144">    fileMenu.addSeparator();</span>
+<span class="fc" id="L145">    fileMenu.add(exitAction);</span>
+<span class="fc" id="L146">    editMenu.add(cutAction);</span>
+<span class="fc" id="L147">    editMenu.add(copyAction);</span>
+<span class="fc" id="L148">    editMenu.add(pasteAction);</span>
+<span class="fc" id="L149">    fileMenu.add(triviaGame);</span>
+<span class="fc" id="L150">    fileMenu.add(searchMovies);</span>
+<span class="fc" id="L151">    editMenu.addSeparator();</span>
+
+<span class="fc" id="L153">    this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);</span>
+
+<span class="fc" id="L155">    this.setTitle(&quot;Trivia Game&quot;);</span>
+
+<span class="fc" id="L157">    tField = new JTextField(10);</span>
+<span class="fc" id="L158">    textDisplay = new JTextArea(20, 30);</span>
+<span class="fc" id="L159">    scrollPane = new JScrollPane(textDisplay);</span>
+<span class="fc" id="L160">    textDisplay.setLineWrap(true);</span>
+<span class="fc" id="L161">    textDisplay.setWrapStyleWord(true);</span>
+<span class="fc" id="L162">    textDisplay.setEditable(false);</span>
+<span class="fc" id="L163">    searchLabel = new JLabel(&quot;Search&quot;);</span>
+
+<span class="fc" id="L165">    goButton = new JButton(&quot;Go&quot;);</span>
+<span class="fc" id="L166">    answerButton = new JButton(&quot;Answer&quot;);</span>
+<span class="fc" id="L167">    answerButton.setEnabled(false);</span>
+<span class="fc" id="L168">    answerButton.setEnabled(false);</span>
+
+<span class="fc" id="L170">    goButton.addActionListener(this);</span>
+<span class="fc" id="L171">    answerButton.addActionListener(this);</span>
+<span class="fc" id="L172">    saveAction.addActionListener(this);</span>
+<span class="fc" id="L173">    exitAction.addActionListener(this);</span>
+<span class="fc" id="L174">    triviaGame.addActionListener(this);</span>
+<span class="fc" id="L175">    searchMovies.addActionListener(this);</span>
+
+<span class="fc" id="L177">    MovieImages m = new MovieImages();</span>
+<span class="fc" id="L178">    m.getPosters();</span>
+
+<span class="fc" id="L180">    infoPanel = new JPanel(new GridLayout(1, 2));</span>
+<span class="fc" id="L181">    buttonPanel = new JPanel(new GridLayout(1, 3));</span>
+
+<span class="fc" id="L183">    this.setJMenuBar(menuBar);</span>
+
+<span class="fc" id="L185">    this.add(infoPanel, BorderLayout.SOUTH);</span>
+<span class="fc" id="L186">    this.add(buttonPanel, BorderLayout.NORTH);</span>
+
+<span class="fc" id="L188">    tField.setFocusable(true);</span>
+
+    // Search area
+<span class="fc" id="L191">    buttonPanel.add(searchLabel);</span>
+<span class="fc" id="L192">    buttonPanel.add(tField);</span>
+<span class="fc" id="L193">    buttonPanel.add(goButton);</span>
+<span class="fc" id="L194">    buttonPanel.add(answerButton);</span>
+
+<span class="fc" id="L196">    infoPanel.add(scrollPane);</span>
+<span class="fc" id="L197">    infoPanel.add(imgPanel);</span>
+
+<span class="fc" id="L199">    this.pack();</span>
+<span class="fc" id="L200">    this.setLocationRelativeTo(null);</span>
+<span class="fc" id="L201">    this.setVisible(true);</span>
+
+<span class="fc" id="L203">  }</span>
+
+  /*****************************************************************************
+   * This method is called when any button is clicked.
+   * 
+   * @param e
+   *          the event that was fired.
+   ****************************************************************************/
+  public final void actionPerformed(final ActionEvent e) {
+
+    // Extract the button that was clicked
+<span class="fc" id="L214">    JComponent buttonPressed = (JComponent) e.getSource();</span>
+<span class="fc bfc" id="L215" title="All 2 branches covered.">    if (buttonPressed == saveAction) {</span>
+
+<span class="fc bfc" id="L217" title="All 2 branches covered.">      if (fileDialog == null) {</span>
+<span class="fc" id="L218">        fileDialog = new JFileChooser();</span>
+      }
+      File selectedFile; // Initially selected file name in the dialog.
+
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">      if (editFile == null) {</span>
+<span class="fc" id="L223">        selectedFile = new File(&quot;searchlist.rtf&quot;);</span>
+<span class="fc" id="L224">      } else {</span>
+
+<span class="nc" id="L226">        selectedFile = new File(editFile.getName());</span>
+<span class="nc" id="L227">        fileDialog.setSelectedFile(selectedFile);</span>
+<span class="nc" id="L228">        fileDialog.setDialogTitle(&quot;Select File to be Saved&quot;);</span>
+<span class="nc" id="L229">        int option = fileDialog.showSaveDialog(this);</span>
+
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (option != JFileChooser.APPROVE_OPTION) {</span>
+<span class="nc" id="L232">          return; // User canceled or clicked the dialog's close box.</span>
+        }
+<span class="nc" id="L234">        selectedFile = fileDialog.getSelectedFile();</span>
+
+        // Ask the user whether to replace the file.
+<span class="nc bnc" id="L237" title="All 2 branches missed.">        if (selectedFile.exists()) {</span>
+<span class="nc" id="L238">          int response = JOptionPane.showConfirmDialog(this,</span>
+<span class="nc" id="L239">              &quot;The file \&quot;&quot; + selectedFile.getName()</span>
+<span class="nc" id="L240">                  + &quot;\&quot; already exists.\nDo you want to replace it?&quot;,</span>
+<span class="nc" id="L241">              &quot;Confirm Save&quot;, JOptionPane.YES_NO_OPTION, </span>
+<span class="nc" id="L242">              JOptionPane.WARNING_MESSAGE);</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">          if (response != JOptionPane.YES_OPTION) {</span>
+<span class="nc" id="L244">            return; // User does not want to replace the file.</span>
+          }
+        }
+        try {
+<span class="nc" id="L248">          PrintWriter out = new PrintWriter(new FileWriter(selectedFile));</span>
+
+<span class="nc" id="L250">          out.println(textDisplay.getText());</span>
+<span class="nc" id="L251">          out.close();</span>
+<span class="nc" id="L252">        } catch (Exception ex) {</span>
+<span class="nc" id="L253">          JOptionPane.showMessageDialog(this,</span>
+<span class="nc" id="L254">              &quot;Sorry, but an error &quot;</span>
+<span class="nc" id="L255">          + &quot; occurred while trying to open the file:\n&quot; + ex);</span>
+          
+          // out.close();
+<span class="nc" id="L258">          return;</span>
+        }
+        try {
+<span class="nc" id="L261">          BufferedWriter fileOut =</span>
+<span class="nc" id="L262">              new BufferedWriter(new FileWriter(&quot;filename.txt&quot;));</span>
+
+<span class="nc" id="L264">          String list = textDisplay.getText();</span>
+
+<span class="nc" id="L266">          fileOut.write(list);</span>
+<span class="nc" id="L267">          fileOut.close();</span>
+<span class="nc" id="L268">          editFile = selectedFile;</span>
+<span class="nc" id="L269">          setTitle(&quot;Movie List: &quot; + editFile.getName());</span>
+<span class="nc" id="L270">        } catch (Exception ex) {</span>
+<span class="nc" id="L271">          JOptionPane.showMessageDialog(this,</span>
+<span class="nc" id="L272">              &quot;Sorry, but an error occurred while trying to write&quot; </span>
+<span class="nc" id="L273">          + &quot; the text:\n&quot; + ex);</span>
+        }
+      }
+    }
+
+<span class="fc bfc" id="L278" title="All 2 branches covered.">    if (buttonPressed == this.goButton) {</span>
+<span class="pc bpc" id="L279" title="1 of 2 branches missed.">      if (tField.getText().trim().isEmpty()) {</span>
+<span class="nc" id="L280">        JOptionPane.showMessageDialog(null, &quot;Please enter some text.&quot;);</span>
+<span class="nc" id="L281">        return;</span>
+      }
+
+      // Clear the text area
+<span class="fc" id="L285">      this.textDisplay.setText(&quot;&quot;);</span>
+
+      // Access the model to retrieve the search results
+<span class="fc" id="L288">      ArrayList&lt;String&gt; movieTitles = </span>
+<span class="fc" id="L289">          this.model.searchForTitles(this.tField.getText());</span>
+
+<span class="fc bfc" id="L291" title="All 2 branches covered.">      for (String title : movieTitles) {</span>
+<span class="fc" id="L292">        this.textDisplay.append(title + &quot;\n&quot;);</span>
+      }
+
+<span class="pc bpc" id="L295" title="1 of 2 branches missed.">      if (movieTitles.isEmpty()) {</span>
+<span class="nc" id="L296">        this.textDisplay.append(&quot;Nothing found...&quot;);</span>
+      }
+
+      // Poster Retrieve
+<span class="fc" id="L300">      BufferedImage image = model.getFirstMoviePoster(tField.getText());</span>
+
+<span class="fc" id="L302">      image = model.getScaledImage(image, 500, 500);</span>
+<span class="fc" id="L303">      imgPanel.changeBackground(image);</span>
+<span class="fc" id="L304">      imgPanel.repaint();</span>
+    }
+
+    // exit button functionality
+<span class="fc bfc" id="L308" title="All 2 branches covered.">    if (buttonPressed == exitAction) {</span>
+<span class="nc" id="L309">      System.exit(0);</span>
+    }
+<span class="fc bfc" id="L311" title="All 2 branches covered.">    if (buttonPressed == triviaGame) {</span>
+<span class="fc" id="L312">      searchLabel.setText(&quot;Trivia&quot;);</span>
+<span class="fc" id="L313">      playingTrivia = true;</span>
+<span class="fc" id="L314">      trivia = new TriviaGame();</span>
+<span class="fc" id="L315">      answerButton.setEnabled(true);</span>
+<span class="fc" id="L316">      goButton.setEnabled(false);</span>
+<span class="fc" id="L317">      this.textDisplay.setText(trivia.getText());</span>
+
+    }
+<span class="fc bfc" id="L320" title="All 2 branches covered.">    if (buttonPressed == searchMovies) {</span>
+<span class="pc bpc" id="L321" title="1 of 2 branches missed.">      if (playingTrivia) {</span>
+<span class="nc" id="L322">        this.textDisplay.setText(&quot;Triva Game Results \n Correct: &quot; </span>
+<span class="nc" id="L323">      + trivia.getNumCorrect() + &quot;\n Incorrect: &quot; + trivia.getNumIncorrect() </span>
+<span class="nc" id="L324">      + &quot;\n You may now enter a search query.&quot;);</span>
+<span class="nc" id="L325">      } else {</span>
+<span class="fc" id="L326">        this.textDisplay.setText(&quot;&quot;);</span>
+      }
+<span class="fc" id="L328">      playingTrivia = false;</span>
+<span class="fc" id="L329">      trivia = null;</span>
+<span class="fc" id="L330">      answerButton.setEnabled(false);</span>
+<span class="fc" id="L331">      goButton.setEnabled(true);</span>
+<span class="fc" id="L332">      searchLabel.setText(&quot;Search&quot;);</span>
+    }
+
+    // if answering trivia
+<span class="fc bfc" id="L336" title="All 2 branches covered.">    if (buttonPressed == answerButton) {</span>
+
+      // if not playing game, notify player
+<span class="pc bpc" id="L339" title="1 of 2 branches missed.">      if (!playingTrivia) {</span>
+<span class="nc" id="L340">        this.textDisplay</span>
+<span class="nc" id="L341">            .setText(&quot;You aren't currently playing trivia.&quot;</span>
+        + &quot; You have no question to answer.&quot;);
+
+        // otherwise answer the question
+<span class="nc" id="L345">      } else {</span>
+<span class="fc" id="L346">        trivia.answer(tField.getText());</span>
+<span class="fc" id="L347">        this.textDisplay.setText(trivia.getText());</span>
+      }
+
+<span class="fc bfc" id="L350" title="All 2 branches covered.">      if (trivia.isGameOver()) {</span>
+        
+        String optionText;
+<span class="pc bpc" id="L353" title="1 of 2 branches missed.">        if (trivia.getNumIncorrect() == 3) {</span>
+<span class="fc" id="L354">          optionText = &quot;Game over. You lost. Would you like to play again?&quot;;</span>
+        
+<span class="fc" id="L356">        } else  {</span>
+<span class="nc" id="L357">          optionText = &quot;Game over. You won! Would you like to play again?&quot;;</span>
+        }
+<span class="fc" id="L359">        int result = JOptionPane.showConfirmDialog(null, optionText, null,</span>
+<span class="fc" id="L360">            JOptionPane.YES_NO_OPTION);</span>
+        
+<span class="fc bfc" id="L362" title="All 2 branches covered.">        if (result == JOptionPane.YES_OPTION) {</span>
+<span class="fc" id="L363">          trivia = new TriviaGame();</span>
+<span class="fc" id="L364">          this.textDisplay.setText(trivia.getText());</span>
+          
+<span class="pc bpc" id="L366" title="1 of 2 branches missed.">        } else if (result == JOptionPane.NO_OPTION) {</span>
+<span class="fc" id="L367">          this.textDisplay</span>
+<span class="fc" id="L368">              .setText(&quot;Triva Game Results \n Correct: &quot; </span>
+<span class="fc" id="L369">          + trivia.getNumCorrect() + &quot;\n Incorrect: &quot;</span>
+<span class="fc" id="L370">                  + trivia.getNumIncorrect() </span>
+<span class="fc" id="L371">                  + &quot;\n You may now enter a search query.&quot;);</span>
+<span class="fc" id="L372">          playingTrivia = false;</span>
+<span class="fc" id="L373">          trivia = null;</span>
+<span class="fc" id="L374">          answerButton.setEnabled(false);</span>
+<span class="fc" id="L375">          goButton.setEnabled(true);</span>
+<span class="fc" id="L376">          searchLabel.setText(&quot;Search&quot;);</span>
+        }
+
+      }
+    }
+<span class="fc" id="L381">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.6.201602180812</span>Main (1) (May 31, 2016 7:56:14 PM)</div></body></html>

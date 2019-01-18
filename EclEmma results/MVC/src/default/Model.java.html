@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>Model.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">Main (1) (May 31, 2016 7:56:14 PM)</a> &gt; <a href="../../index.html" class="el_group">MVC</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">Model.java</span></div><h1>Model.java</h1><pre class="source lang-java linenums">
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import javax.imageio.ImageIO;
+import info.movito.themoviedbapi.*;
+import info.movito.themoviedbapi.TmdbMovies.MovieMethod;
+import info.movito.themoviedbapi.model.*;
+import info.movito.themoviedbapi.model.core.MovieResultsPage;
+import info.movito.themoviedbapi.model.core.ResultsPage;
+import info.movito.themoviedbapi.model.core.SessionToken;
+import info.movito.themoviedbapi.model.keywords.Keyword;
+import info.movito.themoviedbapi.model.people.PersonCast;
+
+/*******************************************************************************
+ * Class that houses all methods accessing the Api.
+ * 
+ * @author Kimberlin Steffens, Raymundo Ramirez, Camaal Murray, Nicolas Heady
+ * @version First Release
+ ******************************************************************************/
+public class Model {
+
+  /** The TmdbApi object. */
+  private TmdbApi tmdbApi;
+
+  /** The SessionToken for specific methods. */
+  private SessionToken sessionToken;
+
+  /** The constructor. */
+<span class="fc" id="L35">  public Model() {</span>
+<span class="fc" id="L36">    tmdbApi = new TmdbApi(&quot;dd2378082d2303539238c2a2ab898957&quot;);</span>
+<span class="fc" id="L37">  }</span>
+
+  /*****************************************************************************
+   * Gets the current TmdbApi.
+   * 
+   * @return the TmdbApi
+   ****************************************************************************/
+  public final TmdbApi getApi() {
+<span class="nc" id="L45">    return this.tmdbApi;</span>
+  }
+
+  /*****************************************************************************
+   * Performs a search for movies with the keyword in the title only.
+   * 
+   * @param keyword
+   *          the searched keyword(s).
+   * @return a list of movie titles.
+   ****************************************************************************/
+  public final ArrayList&lt;String&gt; searchForTitles(final String keyword) {
+
+<span class="fc" id="L57">    ArrayList&lt;String&gt; movieTitles = new ArrayList&lt;String&gt;();</span>
+
+<span class="fc" id="L59">    TmdbSearch titleSearch = new TmdbSearch(tmdbApi);</span>
+<span class="fc" id="L60">    MovieResultsPage resultsPage = </span>
+<span class="fc" id="L61">        titleSearch.searchMovie(keyword, 0, &quot;en&quot;, false, 0);</span>
+
+    // Get a list of MovieDb from the MovieResultsPage.
+<span class="fc" id="L64">    List&lt;MovieDb&gt; results = resultsPage.getResults();</span>
+
+<span class="fc bfc" id="L66" title="All 2 branches covered.">    for (MovieDb movie : results) {</span>
+<span class="fc" id="L67">      movieTitles.add(movie.getTitle());</span>
+    }
+
+<span class="fc" id="L70">    return movieTitles;</span>
+  }
+
+  /*****************************************************************************
+   * Gets the movie poster from the first movie in the results.
+   * 
+   * @param keyword
+   *          the search keyword
+   * @return the movie poster as a BufferedImage
+   ****************************************************************************/
+  public final BufferedImage getFirstMoviePoster(final String keyword) {
+
+<span class="fc" id="L82">    TmdbSearch movieSearch = new TmdbSearch(tmdbApi);</span>
+<span class="fc" id="L83">    MovieResultsPage resultsPage = </span>
+<span class="fc" id="L84">        movieSearch.searchMovie(keyword, 0, &quot;en&quot;, false, 0);</span>
+
+    // Get a list of MovieDb from the MovieResultsPage.
+<span class="fc" id="L87">    List&lt;MovieDb&gt; results = resultsPage.getResults();</span>
+
+<span class="fc" id="L89">    URL url = null;</span>
+
+    try {
+<span class="fc" id="L92">      url = new URL(&quot;https://image.tmdb.org/t/p/original&quot; </span>
+<span class="fc" id="L93">    + results.get(0).getPosterPath());</span>
+<span class="pc" id="L94">    } catch (MalformedURLException e1) {</span>
+<span class="nc" id="L95">      System.out.println(e1.getMessage());</span>
+      
+      // Show &quot;No Poster&quot; text
+<span class="nc" id="L98">      e1.printStackTrace();</span>
+    }
+
+<span class="fc" id="L101">    BufferedImage image = null;</span>
+
+    try {
+<span class="fc" id="L104">      image = ImageIO.read(url);</span>
+<span class="fc" id="L105">    } catch (IOException e1) {</span>
+<span class="fc" id="L106">      System.out.println(e1.getMessage());</span>
+<span class="fc" id="L107">      e1.printStackTrace();</span>
+    }
+
+<span class="fc bfc" id="L110" title="All 2 branches covered.">    if (image != null) {</span>
+<span class="fc" id="L111">      return image;</span>
+    } else {
+      // Do something?
+<span class="fc" id="L114">      return null;</span>
+    }
+  }
+
+  /*****************************************************************************
+   * Resizes image to desired size.
+   * 
+   * @param src
+   *          the image to resize
+   * @param w
+   *          new width
+   * @param h
+   *          new height
+   * @return the resized BufferedImage
+   ****************************************************************************/
+  public final BufferedImage getScaledImage(final BufferedImage src, 
+      final int w, final int h) {
+
+<span class="fc" id="L132">    int finalw = w;</span>
+<span class="fc" id="L133">    int finalh = h;</span>
+<span class="fc" id="L134">    double factor = 1.0d;</span>
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">    if (src.getWidth() &gt; src.getHeight()) {</span>
+<span class="nc" id="L136">      factor = ((double) src.getHeight() / (double) src.getWidth());</span>
+<span class="nc" id="L137">      finalh = (int) (finalw * factor);</span>
+<span class="nc" id="L138">    } else {</span>
+<span class="fc" id="L139">      factor = ((double) src.getWidth() / (double) src.getHeight());</span>
+<span class="fc" id="L140">      finalw = (int) (finalh * factor);</span>
+    }
+
+<span class="fc" id="L143">    BufferedImage resizedImg = </span>
+<span class="fc" id="L144">        new BufferedImage(finalw, finalh, BufferedImage.TRANSLUCENT);</span>
+
+<span class="fc" id="L146">    Graphics2D g2 = resizedImg.createGraphics();</span>
+<span class="fc" id="L147">    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,</span>
+<span class="fc" id="L148">        RenderingHints.VALUE_INTERPOLATION_BILINEAR);</span>
+
+<span class="fc" id="L150">    g2.drawImage(src, 0, 0, finalw, finalh, null);</span>
+<span class="fc" id="L151">    g2.dispose();</span>
+<span class="fc" id="L152">    return resizedImg;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.6.201602180812</span>Main (1) (May 31, 2016 7:56:14 PM)</div></body></html>

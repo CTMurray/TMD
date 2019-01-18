@@ -1,0 +1,8 @@
+Welcome to the Trivia Game!
+ Question number 1
+ What year was Jurassic World released?
+ Correct! Current Score: correct- 1 incorrect- 0 
+ Next Question. 
+
+ Question number 2
+ Who is an actor that starred in Zootopia?

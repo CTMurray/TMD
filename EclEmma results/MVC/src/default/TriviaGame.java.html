@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>TriviaGame.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">Main (1) (May 31, 2016 7:56:14 PM)</a> &gt; <a href="../../index.html" class="el_group">MVC</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">TriviaGame.java</span></div><h1>TriviaGame.java</h1><pre class="source lang-java linenums">import java.util.Random;
+import java.util.List;
+import info.movito.themoviedbapi.*;
+import info.movito.themoviedbapi.model.*;
+import info.movito.themoviedbapi.model.core.*;
+import info.movito.themoviedbapi.model.keywords.Keyword;
+import info.movito.themoviedbapi.model.people.Person;
+import info.movito.themoviedbapi.model.people.PersonCast;
+import info.movito.themoviedbapi.model.MovieList;
+
+/*******************************************************************************
+ * TriviaGame contains the trivia game for the application. It pulls random 
+ * popular movies from TMDb and asks questions on it for the user to answer. 
+ * The game keeps track of correct and incorrect answers.
+ * 
+ * @author Kimberlin Steffens, Raymundo Ramirez, Camaal Murray, Nicolas Heady
+ * @version First Release
+ ******************************************************************************/
+public class TriviaGame {
+
+  /** Counts the number of questions correct. */
+  private int numCorrect;
+
+  /** Counts the number of questions incorrect. */
+  private int numIncorrect;
+
+  /** Tracks the current question number. */
+  private int questionNum;
+
+  /** The text to be displayed to the player. */
+  private String text;
+
+  /** The movie being quizzed on. */
+  private MovieDb quizzedMovie;
+
+  /** The question is being asked. */
+  private int questionType;
+
+  /** The api key. */
+  private TmdbApi tmdbApi;
+
+  /** The database of movies. */
+  private TmdbMovies movies;
+  
+  /** Whether the game is over or not. */
+  private boolean gameOver;
+
+  /*****************************************************************************
+   * The constructor for TrviviaGame. Instantiates all instance variables and 
+   * sets the text to a welcome message.
+   ****************************************************************************/
+<span class="fc" id="L52">  public TriviaGame() {</span>
+
+    // instantiate everything
+<span class="fc" id="L55">    numCorrect = 0;</span>
+<span class="fc" id="L56">    numIncorrect = 0;</span>
+<span class="fc" id="L57">    questionNum = 1;</span>
+<span class="fc" id="L58">    gameOver = false;</span>
+<span class="fc" id="L59">    text = &quot;Welcome to the Trivia Game!&quot;;</span>
+
+<span class="fc" id="L61">    tmdbApi = new TmdbApi(&quot;d2daaf6a236119d2b3020ba876471949&quot;);</span>
+
+<span class="fc" id="L63">    movies = tmdbApi.getMovies();</span>
+
+    // begin the quiz
+<span class="fc" id="L66">    quiz();</span>
+<span class="fc" id="L67">  }</span>
+
+  /*****************************************************************************
+   * Method to quiz the user. A random type of question is chosen and the 
+   * question number is incremented.
+   ****************************************************************************/
+  public final void quiz() {
+<span class="fc" id="L74">    Random generator = new Random();</span>
+
+    // random question type. currently only 4 types
+<span class="fc" id="L77">    questionType = generator.nextInt(4);</span>
+
+<span class="fc" id="L79">    text += &quot;\n Question number &quot; + questionNum;</span>
+
+    // ask the random question
+<span class="fc bfc" id="L82" title="All 2 branches covered.">    if (questionType == 0) {</span>
+<span class="fc" id="L83">      quizGenre();</span>
+    
+<span class="fc bfc" id="L85" title="All 2 branches covered.">    } else if (questionType == 1) {</span>
+<span class="fc" id="L86">      quizActor();</span>
+    
+<span class="fc bfc" id="L88" title="All 2 branches covered.">    } else if (questionType == 2) {</span>
+<span class="fc" id="L89">      quizDate();</span>
+    
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">    } else if (questionType == 3) {</span>
+<span class="fc" id="L92">      quizTagline();</span>
+    }
+    
+    // question number goes up
+<span class="fc" id="L96">    questionNum++;</span>
+<span class="fc" id="L97">  }</span>
+
+  /*****************************************************************************
+   * Quizzes on the genre of a movie. First picks a random popular movie to quiz
+   * on and then asks the user.
+   ****************************************************************************/
+  public final void quizGenre() {
+<span class="fc" id="L104">    quizzedMovie = randomPopMovie();</span>
+<span class="fc" id="L105">    text += &quot;\n What genre is the movie &quot; + quizzedMovie.getTitle() + &quot;?&quot;;</span>
+<span class="fc" id="L106">  }</span>
+
+  /*****************************************************************************
+   * Quizzes on the cast of a movie. First picks a random popular movie to quiz
+   * on and then asks the user.
+   ****************************************************************************/
+  public final void quizActor() {
+<span class="fc" id="L113">    quizzedMovie = randomPopMovie();</span>
+<span class="fc" id="L114">    text += &quot;\n Who is an actor that starred in &quot; + quizzedMovie.getTitle() </span>
+<span class="fc" id="L115">    + &quot;?&quot;;</span>
+<span class="fc" id="L116">  }</span>
+
+  /*****************************************************************************
+   * Quizzes on the year released of a movie. First picks a random popular movie
+   *  to quiz on and then asks the user.
+   ****************************************************************************/
+  public final void quizDate() {
+<span class="fc" id="L123">    quizzedMovie = randomPopMovie();</span>
+<span class="fc" id="L124">    text += &quot;\n What year was &quot; + quizzedMovie.getTitle() + &quot; released?&quot;;</span>
+<span class="fc" id="L125">  }</span>
+
+  /*****************************************************************************
+   * Quizzes on the tagline of a movie. First picks a random popular movie to 
+   * quiz on and then asks the user.
+   ****************************************************************************/
+  public final void quizTagline() {
+<span class="fc" id="L132">    quizzedMovie = randomPopMovie();</span>
+    
+    // make sure there is a tagline for the movie
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">    while (quizzedMovie.getTagline().equals(&quot;&quot;)) {</span>
+<span class="nc" id="L136">      quizzedMovie = randomPopMovie();</span>
+    }
+
+<span class="fc" id="L139">    text += &quot;\n What movie has the tagline \&quot;&quot; + quizzedMovie.getTagline()</span>
+<span class="fc" id="L140">    + &quot;\&quot;?&quot;;</span>
+<span class="fc" id="L141">  }</span>
+
+  /*****************************************************************************
+   * Method for the user to answer the question. 
+   * 
+   * @param answer The user's given answer.
+   ****************************************************************************/
+  public final void answer(final String answer) {
+
+    // if they were correct or not
+<span class="fc" id="L151">    boolean correctAnswer = false;</span>
+
+    // genre question
+<span class="fc bfc" id="L154" title="All 2 branches covered.">    if (questionType == 0) {</span>
+
+      // loop through all genres to see if answer is there
+<span class="fc bfc" id="L157" title="All 2 branches covered.">      for (Genre genre : quizzedMovie.getGenres()) {</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">        if (genre.getName().equalsIgnoreCase(answer)) {</span>
+<span class="fc" id="L159">          correctAnswer = true;</span>
+        }
+      }
+
+    // actor question
+<span class="fc bfc" id="L164" title="All 2 branches covered.">    } else if (questionType == 1) {</span>
+
+      // loop through all cast members to see if answer is there
+<span class="fc bfc" id="L167" title="All 2 branches covered.">      for (PersonCast actor : quizzedMovie.getCast()) {</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">        if (actor.getName().equalsIgnoreCase(answer)) {</span>
+<span class="fc" id="L169">          correctAnswer = true;</span>
+        }
+        }
+
+    // release date question
+<span class="fc bfc" id="L174" title="All 2 branches covered.">    } else if (questionType == 2) {</span>
+<span class="fc" id="L175">      if (quizzedMovie.getReleaseDate().substring(0, 4)</span>
+<span class="fc bfc" id="L176" title="All 2 branches covered.">          .equalsIgnoreCase(answer)) {</span>
+<span class="fc" id="L177">        correctAnswer = true;</span>
+      }
+
+    // tagline question
+<span class="pc bpc" id="L181" title="1 of 2 branches missed.">    } else if (questionType == 3) {</span>
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">      if (quizzedMovie.getTitle().equalsIgnoreCase(answer)) {</span>
+<span class="nc" id="L183">        correctAnswer = true;</span>
+      }
+    }
+
+    // update text and include the current score
+<span class="fc bfc" id="L188" title="All 2 branches covered.">    if (correctAnswer) {</span>
+<span class="fc" id="L189">      numCorrect++;</span>
+<span class="fc" id="L190">      text += &quot;\n Correct! Current Score: correct- &quot; + numCorrect </span>
+<span class="fc" id="L191">          + &quot; incorrect- &quot; + numIncorrect;</span>
+<span class="fc" id="L192">    } else {</span>
+<span class="fc" id="L193">      numIncorrect++;</span>
+<span class="fc" id="L194">      text += &quot;\n Sorry that was incorrect. Current Score: correct- &quot; </span>
+<span class="fc" id="L195">      + numCorrect + &quot; incorrect- &quot;</span>
+<span class="fc" id="L196">          + numIncorrect;</span>
+    }
+    
+    // if game is over
+<span class="fc bfc" id="L200" title="All 2 branches covered.">    if (numIncorrect == 3) {</span>
+<span class="fc" id="L201">      gameOver = true;</span>
+    
+<span class="pc bpc" id="L203" title="1 of 2 branches missed.">    } else if (numCorrect == 7) {</span>
+<span class="nc" id="L204">      gameOver = true;</span>
+    
+    // next question
+<span class="nc" id="L207">    } else {</span>
+<span class="fc" id="L208">    text += &quot; \n Next Question. \n&quot;;</span>
+<span class="fc" id="L209">    quiz();</span>
+      }
+<span class="fc" id="L211">  }</span>
+
+  //
+  // public MovieDb randomMovie() {
+  //
+  // try {
+  // // A start for Random Movie generation
+  // // There are still some erros in the questioning
+  // // This is what I thought of for a range
+  // int max = 17000;
+  // int min = 329;
+  // int guest = 1;
+  // boolean found = false;
+  // MovieDb movie = null;
+  //
+  // while (!found) {
+  //
+  // guest = (int) (Math.random() * max + min);
+  //
+  // movie = movies.getMovie(guest, &quot;en&quot;);
+  //
+  // if (movie.getTitle() != null) {
+  // found = true;
+  // // return movies.getMovie(guest, &quot;en&quot;);
+  // }
+  //
+  // }
+  // return movie;
+  //
+  // } catch (Throwable e) {
+  // return randomMovie();
+  // }
+  // }
+
+  /*****************************************************************************
+   * Finds a random popular movie to quiz on.
+   * 
+   * @return A popular MovieDb to be quizzed on.
+   ****************************************************************************/
+  public final MovieDb randomPopMovie() {
+
+<span class="fc" id="L252">    MovieResultsPage results = movies.getPopularMovies(&quot;en&quot;, 0);</span>
+<span class="fc" id="L253">    List&lt;MovieDb&gt; popularMovies = results.getResults();</span>
+<span class="fc" id="L254">    int numMovies = popularMovies.size();</span>
+
+<span class="fc" id="L256">    int randomNum = (int) (Math.random() * (numMovies - 0) + 0);</span>
+<span class="fc" id="L257">    int movieId = popularMovies.get(randomNum).getId();</span>
+
+<span class="fc" id="L259">    MovieDb randomMovie = this.movies.getMovie(movieId, &quot;en&quot;, </span>
+<span class="fc" id="L260">        TmdbMovies.MovieMethod.credits);</span>
+
+<span class="fc" id="L262">    return randomMovie;</span>
+  }
+
+  /*****************************************************************************
+   * Gets a poster for the quizzed movie.
+   * 
+   * @return A string with the uri of the poster.
+   ****************************************************************************/
+  public final String getPoster() {
+<span class="nc" id="L271">    String uri = &quot;http://image.tmdb.org/t/p/w500/&quot;;</span>
+<span class="nc" id="L272">    String path = quizzedMovie.getPosterPath();</span>
+<span class="nc" id="L273">    uri += path;</span>
+<span class="nc" id="L274">    return uri;</span>
+  }
+
+  /*****************************************************************************
+   * Getter method for numCorrect.
+   * 
+   * @return the numCorrect
+   ****************************************************************************/
+  public final int getNumCorrect() {
+<span class="fc" id="L283">    return numCorrect;</span>
+  }
+
+  /*****************************************************************************
+   * Setter method for numCorrect.
+   * 
+   * @param newCorrect
+   *          the numCorrect to set
+   ****************************************************************************/
+  public final void setNumCorrect(final int newCorrect) {
+<span class="nc" id="L293">    this.numCorrect = newCorrect;</span>
+<span class="nc" id="L294">  }</span>
+
+  /*****************************************************************************
+   * Getter method for numIncorrect.
+   * 
+   * @return the numIncorrect
+   ****************************************************************************/
+  public final int getNumIncorrect() {
+<span class="fc" id="L302">    return numIncorrect;</span>
+  }
+
+  /*****************************************************************************
+   * Setter method for numIncorrect.
+   * 
+   * @param newIncorrect
+   *          the numIncorrect to set
+   ****************************************************************************/
+  public final void setNumIncorrect(final int newIncorrect) {
+<span class="nc" id="L312">    this.numIncorrect = newIncorrect;</span>
+<span class="nc" id="L313">  }</span>
+
+  /*****************************************************************************
+   * Getter method for questionNum.
+   * 
+   * @return the questionNum
+   ****************************************************************************/
+  public final int getQuestionNum() {
+<span class="nc" id="L321">    return questionNum;</span>
+  }
+
+  /*****************************************************************************
+   * Setter method for questionNum.
+   * 
+   * @param newQuestionNum
+   *          the questionNum to set
+   ****************************************************************************/
+  public final void setQuestionNum(final int newQuestionNum) {
+<span class="nc" id="L331">    this.questionNum = newQuestionNum;</span>
+<span class="nc" id="L332">  }</span>
+
+  /*****************************************************************************
+   * Getter method for text.
+   * 
+   * @return the text
+   ****************************************************************************/
+  public final String getText() {
+<span class="fc" id="L340">    return text;</span>
+  }
+
+  /*****************************************************************************
+   * Setter method for the text.
+   * 
+   * @param newText
+   *          the text to set
+   ****************************************************************************/
+  public final void setText(final String newText) {
+<span class="nc" id="L350">    this.text = newText;</span>
+<span class="nc" id="L351">  }</span>
+
+  /*****************************************************************************
+   * Getter method for gameOver.
+   * 
+   * @return the gameOver
+   ****************************************************************************/
+  public final boolean isGameOver() {
+<span class="fc" id="L359">    return gameOver;</span>
+  }
+
+  /*****************************************************************************
+   * Setter method for gameOver.
+   * 
+   * @param isOver the gameOver to set
+   ****************************************************************************/
+  public final void setGameOver(final boolean isOver) {
+<span class="nc" id="L368">    this.gameOver = isOver;</span>
+<span class="nc" id="L369">  }</span>
+  
+  
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.6.201602180812</span>Main (1) (May 31, 2016 7:56:14 PM)</div></body></html>
